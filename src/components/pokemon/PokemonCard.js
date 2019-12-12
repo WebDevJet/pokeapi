@@ -1,19 +1,73 @@
 import React, { Component } from 'react';
+import styled from 'styled-components';
+import spinner from '../pokemon/spinner.gif';
 
+const Sprite = styled.img`
+  width: 5em;
+  heigth: 5em;
+  display: none;
+`;
 export default class PokemonCard extends Component {
   state = {
     name: '',
     imageUrl: '',
-    pokemonIndex: ''
+    pokemonIndex: '',
+    imageLoading: true,
+    toManyRequests: false
   };
-  render() {
-    const { name, url } = this.props;
 
+  componentDidMount() {
+    const { name, url } = this.props;
+    const pokemonIndex = url.split('/')[url.split('/').length - 2];
+    const imageUrl = `https://github.com/PokeAPI/sprites/blob/master/sprites/pokemon/${pokemonIndex}.png?raw=true`;
+
+    this.setState({
+      name: name,
+      imageUrl: imageUrl,
+      pokemonIndex: pokemonIndex
+    });
+  }
+
+  render() {
     return (
       <div className='col-md-3 col-sm-6 mb-5'>
         <div className='card'>
-          <div className='card-header'>
-            <h1>{name}</h1>
+          <h5 className='card-header'>{this.state.pokemonIndex}</h5>
+          {this.state.imageLoading ? (
+            <img
+              src={spinner}
+              style={{ width: '5em', height: '5em' }}
+              className='card-img-top rounded mx-auto d-block mt-2'
+            />
+          ) : null}
+          <Sprite
+            className='card-img-top rounded mx-auto mt-2'
+            onLoad={() => this.setState({ imageLoading: false })}
+            onError={() => this.setState({ toManyRequests: true })}
+            src={this.state.imageUrl}
+            style={
+              this.state.toManyRequests
+                ? { display: 'none' }
+                : this.state.imageLoading
+                ? null
+                : { display: 'block' }
+            }
+          ></Sprite>
+          {this.state.toManyRequests ? (
+            <h6 className='mx-auto'>
+              <span className='badge badge-danger mt-2'>Too Many Request</span>
+            </h6>
+          ) : null}
+          <div className='card-body mx-auto'>
+            <h6 className='card-title '>
+              {this.state.name
+                .toLowerCase()
+                .split(' ')
+                .map(
+                  letter => letter.charAt(0).toUpperCase() + letter.substring(1)
+                )
+                .join(' ')}
+            </h6>
           </div>
         </div>
       </div>
